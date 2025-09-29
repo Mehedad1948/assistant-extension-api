@@ -6,7 +6,7 @@
     "start": "node src/index.js",
     "start:dev": "nodemon --legacy-watch src/index.js",
     "dev": "docker-compose -f docker-compose-development.yml up",
-    "dev:build": "docker-compose -f docker-compose-development.yml build --no-cache",
+    "dev:build": "docker-compose -f docker-compose-development.yml build",
     "dev:stop": "docker-compose -f docker-compose-development.yml stop"
   },
   "author": "Mehrdad",
