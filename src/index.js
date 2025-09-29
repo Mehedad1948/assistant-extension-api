@@ -1,6 +1,9 @@
 const mongoose = require("mongoose")
 require("dotenv/config")
 
+require('./models/user')
+require('./models/token')
+
 const db = require('./utils/db')
 
 const app = require('./app')
