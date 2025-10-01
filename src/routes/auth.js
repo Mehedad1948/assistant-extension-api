@@ -1,13 +1,14 @@
-const express = require("express")
+const express = require("express");
 
-const { register, verify } = require('../handlers/auth')
-const response = require("../utils/response")
-const { login } = require('../handlers/auth/login')
+const { getUser, login, register, verify } = require("../handlers/auth");
+const { validation } = require("../handlers/validation");
+const response = require("../utils/response");
 
-const router = express.Router()
+const router = express.Router();
 
-router.post('/register', response(register))
-router.post('/login', response(login))
-router.put('/verify/:token', response(verify))
+router.get("/", response(validation), response(getUser));
+router.post("/register", response(register));
+router.post("/login", response(login));
+router.put("/verify/:token", response(verify));
 
-module.exports = router
+module.exports = router;
