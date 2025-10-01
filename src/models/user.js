@@ -41,7 +41,8 @@ const userSchema = new mongoose.Schema({
     }
 )
 
-userSchema.methods.validatePassword = function validatePassword(params) {
+userSchema.methods.validatePassword = function validatePassword(password) {
+
     if (!this.password) {
         return false
     }
