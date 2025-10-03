@@ -1,13 +1,23 @@
 const mongoose = require("mongoose");
 const axios = require("axios");
 
+const Tag = mongoose.model("Tag");
 const Link = mongoose.model("Link");
 
 exports.addLink = async (req, res) => {
-  const { userId, body } = req;
-  const { url, title } = body;
+  const { userId, body, query } = req;
+  const { url, title, tags } = body;
+  const { returnAllTags } = query;
 
-  const existingLink = await Link.findOne({ url, user: userId });
+  const existingLink = await Link.findOne({ url, user: userId }).populate(
+    "tags"
+  );
+
+  // We need to get all tags if the user wants them returned in the response
+  let allTags;
+  if (returnAllTags) {
+    allTags = await Tag.find({ user: userId });
+  }
 
   // If the link already exists, return it
   if (existingLink) {
@@ -17,13 +27,21 @@ exports.addLink = async (req, res) => {
         title: existingLink.title,
         url: existingLink.url,
         date: existingLink.createdAt,
+        tags: existingLink.tags.map((t) => ({
+          tagId: t.tagId,
+          title: t.title,
+        })),
       },
+      tags: returnAllTags
+        ? allTags.map((t) => ({ tagId: t.tagId, title: t.title }))
+        : [],
       isNew: false,
     });
     return;
   }
 
   let linkTitle;
+  // If we have the title, use it, otherwise we need to find it
   if (title) {
     linkTitle = title;
   } else {
@@ -51,10 +69,41 @@ exports.addLink = async (req, res) => {
     }
   }
 
+  let tagsToAdd = [];
+  let newTags = []; // Stored outside so we can pass to UI
+  if (tags.length) {
+    const newTagTitles = [];
+    const existingTagIds = [];
+
+    // Figure out what's new and existing for tags
+    tags.forEach((t) => {
+      if (t.tagId) {
+        existingTagIds.push(t.tagId);
+      } else {
+        newTagTitles.push(t.title);
+      }
+    });
+
+    // Grab existing tag data
+    const existingTags = await Tag.find({
+      tagId: { $in: existingTagIds },
+      user: userId,
+    });
+
+    // Create new tags
+    newTags = await Tag.insertMany(
+      newTagTitles.map((t) => ({ title: t, user: userId }))
+    );
+
+    // Combine existing and new tags
+    tagsToAdd = [...existingTags, ...newTags];
+  }
+
   const link = await Link.create({
     url,
     title: linkTitle,
     user: userId,
+    tags: tagsToAdd.map((t) => t._id),
   });
 
   const parsedLink = {
@@ -62,10 +111,18 @@ exports.addLink = async (req, res) => {
     title: link.title,
     url: link.url,
     date: link.createdAt,
+    tags: tagsToAdd.map((t) => ({
+      tagId: t.tagId,
+      title: t.title,
+    })),
   };
 
   res.status(201).send({
     link: parsedLink,
+    // Either return all tags or just the new ones
+    tags: returnAllTags
+      ? allTags.map((t) => ({ tagId: t.tagId, title: t.title }))
+      : newTags.map((t) => ({ tagId: t.tagId, title: t.title })),
     isNew: true,
   });
 };

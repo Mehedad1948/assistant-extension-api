@@ -3,16 +3,12 @@ const mongoose = require("mongoose");
 
 mongoose.Promise = global.Promise;
 
-const linkSchema = new mongoose.Schema(
+const tagSchema = new mongoose.Schema(
   {
-    linkId: {
+    tagId: {
       type: String,
-      required: "Please provide a link Id",
+      required: "Please provide a tag Id",
       default: uuid,
-    },
-    url: {
-      type: String,
-      required: "Please provide a url",
     },
     title: {
       type: String,
@@ -23,16 +19,10 @@ const linkSchema = new mongoose.Schema(
       required: "Please provide a user",
       ref: "User",
     },
-    tags: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "Tag",
-      },
-    ],
   },
   {
     timestamps: true,
   }
 );
 
-module.exports = mongoose.model("Link", linkSchema);
+module.exports = mongoose.model("Tag", tagSchema);
