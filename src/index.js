@@ -3,6 +3,8 @@ require("dotenv/config")
 
 require('./models/user')
 require('./models/token')
+require('./models/link')
+require('./models/tag')
 
 const db = require('./utils/db')
 
